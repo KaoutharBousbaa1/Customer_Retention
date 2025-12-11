@@ -4,11 +4,11 @@ A Streamlit application that automatically processes customer cancellations usin
 
 ## Features
 
-- 🤖 **AI-Powered Matching**: Automatically matches cancellation reasons with retention offers
-- ✍️ **Email Generation**: Creates personalized retention emails
-- 📧 **Email Sending**: Sends emails directly to customers or team notifications
-- 📊 **Batch Processing**: Process multiple cancellations from CSV files
-- 📥 **CSV Export**: Download processing results
+- **AI-Powered Matching**: Automatically matches cancellation reasons with retention offers
+- **Email Generation**: Creates personalized retention emails
+- **Email Sending**: Sends emails directly to customers or team notifications
+- **Batch Processing**: Process multiple cancellations from CSV files
+- **CSV Export**: Download processing results
 
 ## Quick Start
 
