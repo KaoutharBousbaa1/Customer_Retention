@@ -1,0 +1,414 @@
+{
+  "name": "Customer Retention Multi-Agent Cancellation Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "60fd3586-443a-4bb2-ae85-8e2598d8b438",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1840,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "teamEmail",
+              "value": "kaouthar@lonelyoctopus.com",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "cancellationsSheetId",
+              "value": "1q93h4hnZGvM8549w9OpjgcyjsX6oeNWsTr5cjLoeWtc",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "offersSheetId",
+              "value": "1q93h4hnZGvM8549w9OpjgcyjsX6oeNWsTr5cjLoeWtc",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "ab815f8f-659b-457b-8bba-bab3dec6bfd1",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1616,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.cancellationsSheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 430223443,
+          "mode": "list",
+          "cachedResultName": "customers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1q93h4hnZGvM8549w9OpjgcyjsX6oeNWsTr5cjLoeWtc/edit#gid=430223443"
+        },
+        "options": {}
+      },
+      "id": "fe669506-5422-41d6-9640-6279c3028b14",
+      "name": "Get Cancellations",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1392,
+        -32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uv5jZHyATz0SnjYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "NO_MATCH",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e617376f-3b67-4477-8bb3-e28eb1fec880",
+      "name": "Check If Match Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -336,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please find the best retention offer for this customer.\n\nCANCELLATION REASON: {{ $('Get Cancellations').item.json['Cancellation Reason'] }}\n\nFollow your process to analyze this reason and return your recommendation in the specified format.",
+        "options": {
+          "systemMessage": "ROLE: You are an offer matching specialist for customer retention.\n\nTASK: Match customer cancellation reasons with appropriate retention offers from our available inventory.\n\nINPUT: You will receive:\n- A customer's cancellation reason (text explanation)\n- Access to our retention offers database via Google Sheets tool\n\nOUTPUT: Provide your response in this exact format:\n- OFFER_CODE: [the offer code] OR \"NO_MATCH\"\n- OFFER_NAME: [the offer name] OR \"None\"\n- MATCH_REASONING: [1-2 sentences explaining why this offer addresses their concern, or why no match exists]\n\nCONSTRAINTS:\n- Only recommend offers that directly address the customer's stated cancellation reason\n- Never recommend multiple offers - select only the single best match\n- If the cancellation reason is vague, return NO_MATCH rather than guessing\n- Do not create or modify offer codes - only use existing ones from the database\n\nCAPABILITIES & PROCESS:\n1. First, use the Google Sheets tool to retrieve all available retention offers\n2. Analyze the customer's cancellation reason to identify the core issue (price, features, service quality, competitor, etc.)\n3. Compare the cancellation reason against each offer's intended purpose\n4. Select the offer that most directly resolves their specific concern\n5. If no offer addresses their reason (e.g., they're moving countries and we don't service that area), return NO_MATCH"
+        }
+      },
+      "id": "3925b382-362f-4759-9e61-f6b91d6eed53",
+      "name": "Offer Matcher Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1168,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "5a59aa24-3df8-41a0-8b94-afcc88320fc2",
+      "name": "OpenAI Model - Matcher",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1168,
+        192
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "fkPhpbfMChOFegJa",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a retention email:\n\nMatched offer: {{ $json.output }}\nCancellation reason: {{ $('Get Cancellations').item.json['Cancellation Reason'] }}\nCustomer email: {{ $('Get Cancellations').item.json.Email }}",
+        "options": {
+          "systemMessage": "ROLE: You are an email writer for customer retention.\n\nTASK: Write a brief, friendly email to convince customers to stay using a matched offer.\n\nINPUT: \n- Matched offer (or \"NO_MATCH\")\n- Customer's cancellation reason\n- Customer email\n\nOUTPUT:\n- If offer is \"NO_MATCH\": return only \"NO_MATCH\"\n- If offer exists: write a 100-150 word email (no subject line)\n\nCONSTRAINTS:\n- Acknowledge their cancellation reason\n- Explain how the offer solves their problem\n- End with: \"Best regards,\\nThe Customer Team\"\n- Be warm and professional, not pushy\n- Include a clear next step for them to take\n\nSTRUCTURE:\n1. Friendly greeting\n2. Acknowledge their concern (1 sentence)\n3. Present the offer as a solution (2-3 sentences)\n4. Call-to-action (1 sentence)\n5. Signature"
+        }
+      },
+      "id": "5409df91-62d4-453f-b079-279ae62df9ac",
+      "name": "Email Sender Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -816,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "b8ad41af-4a2a-48d1-a0fd-8c446cd84b6f",
+      "name": "OpenAI Model - Email",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -752,
+        192
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "fkPhpbfMChOFegJa",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get Cancellations').item.json.Email }}",
+        "subject": "We'd Love to Keep You - Special Retention Offer",
+        "emailType": "text",
+        "message": "={{ $('Email Sender Agent').item.json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f6703f4a-3106-4859-b573-c94aeedeef45",
+      "name": "Send Retention Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        -128
+      ],
+      "webhookId": "82c045e5-ab6f-4205-8eee-f37d6a079d37",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wXvqkO5AY7oiCbZO",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1q93h4hnZGvM8549w9OpjgcyjsX6oeNWsTr5cjLoeWtc",
+          "mode": "list",
+          "cachedResultName": "testing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1q93h4hnZGvM8549w9OpjgcyjsX6oeNWsTr5cjLoeWtc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1128993135,
+          "mode": "list",
+          "cachedResultName": "offers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1q93h4hnZGvM8549w9OpjgcyjsX6oeNWsTr5cjLoeWtc/edit#gid=1128993135"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -1040,
+        192
+      ],
+      "id": "96a5113b-db35-4ff6-8b2d-329dcd4810a4",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "uv5jZHyATz0SnjYJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=A customer cancellation was detected but no matching retention offer was found.\n\nPlease review manually:\nCustomer's ID: {{ $('Get Cancellations').item.json['Customer ID'] }}\nEmail: {{ $('Get Cancellations').item.json.Email }}\nDate Cancelled: {{ $('Get Cancellations').item.json['Date Cancelled'] }}\n\nThank you,\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        80
+      ],
+      "id": "f79305a2-60db-4bf4-a2dd-30fca3addfab",
+      "name": "Discord",
+      "webhookId": "02f6e284-59ad-47ff-bd59-063fb515eb70",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "PQwAMnFwwySbjnvQ",
+          "name": "Discord Webhook account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Get Cancellations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Cancellations": {
+      "main": [
+        [
+          {
+            "node": "Offer Matcher Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Match Found": {
+      "main": [
+        [
+          {
+            "node": "Send Retention Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Matcher": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Offer Matcher Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Offer Matcher Agent": {
+      "main": [
+        [
+          {
+            "node": "Email Sender Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model - Email": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Sender Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Sender Agent": {
+      "main": [
+        [
+          {
+            "node": "Check If Match Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "Offer Matcher Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Retention Email": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "793b6f06-54cf-4571-833f-7f17b1e553eb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce1128a0800e03967770d25c462250630433ad5cefb113f74554e15867e4ece7"
+  },
+  "id": "hgVA4i30OvSIYMTS",
+  "tags": []
+}
