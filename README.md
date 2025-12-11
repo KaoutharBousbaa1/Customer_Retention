@@ -30,7 +30,7 @@ SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
 ```
 
-**For Gmail**: Use an [App Password](https://myaccount.google.com/apppasswords) (not your regular password).
+**For Gmail**: Use an App Password (not your regular password).
 
 ### 3. Run the App
 
