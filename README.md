@@ -66,14 +66,6 @@ Open your browser to `http://localhost:8501`
 3. Click "Process All Cancellations"
 4. Review results and send emails in bulk
 
-## CSV Format
-
-```csv
-Email,Cancellation Reason,Customer ID,Date Cancelled
-customer@example.com,The service is too expensive,CUST-001,2025-12-11
-customer2@example.com,Missing features I need,CUST-002,2025-12-11
-```
-
 ## Requirements
 
 - Python 3.8+
