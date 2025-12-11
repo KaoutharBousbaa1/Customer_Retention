@@ -24,7 +24,7 @@ Create a `.env` file in the project root:
 
 ```bash
 OPENAI_API_KEY=your-openai-api-key-here
-SENDER_EMAIL=your-email@example.com
+SENDER_EMAIL=your-email@example.com  (-> this is also the email address of the Customer Team)
 SENDER_PASSWORD=your-app-password
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
